@@ -4,6 +4,8 @@ using Microsoft.AspNet.Identity;
 using Microsoft.Owin.Security.Cookies;
 using System.Web.Helpers;
 using System.Security.Claims;
+using Microsoft.Owin.Security.Norton;
+using System.Threading.Tasks;
 
 namespace MVC4_OIDC
 {
@@ -21,10 +23,47 @@ namespace MVC4_OIDC
 
 
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
+            
+            var nslClientId = "{{client_id}}";
+            var nslClientSecret = "{{client_secret}}";
+            app.UseNortonAuthentication(new NortonAuthenticationOptions()
+            {
+                ClientId = nslClientId,
+                ClientSecret = nslClientSecret,
+                AuthorizationEndpoint = "https://login-int.norton.com/sso/idp/OIDC",
+                TokenEndpoint = "https://login-int.norton.com/sso/oidc1/tokens",
+                UserInformationEndpoint = "https://login-int.norton.com/sso/oidc1/userinfo",
+                CallbackPath = new PathString("/signin-norton"),
+                AcrValues = "https://login.norton.com/sso/saml_2.0_profile/noheaderfooter https://login.norton.com/sso/saml_2.0_profile/nosignup",
+                Provider = new NortonAuthenticationProvider()
+                {
+                    OnAuthenticated = async context =>
+                    {
+                        await Task.Run(() =>
+                        {
+                            //your code here
+                            var accessToken = context.AccessToken;
+                            var refreshToken = context.RefreshToken;
+                            var idToken = context.IdToken;
 
-            var googleClientId = "835072215661-etftrpjnap9bp5ouu6bu58h6qa7ifg84.apps.googleusercontent.com";
-            var googleClientSecret = "KGZgMjMTUihLLLgsLzNA2PH2";
-            app.UseGoogleAuthentication(clientId: googleClientId, clientSecret: googleClientSecret);
+                            return Task.FromResult(0);
+                        });                        
+                    },
+                    OnReturnEndpoint = async context =>
+                    {
+                        await Task.Run(() =>
+                        {
+                            //your code here
+                            return Task.FromResult(0);
+                        });
+                    },
+                    OnApplyRedirect = context =>
+                    {
+                        //your code here
+                        context.Response.Redirect(context.RedirectUri);
+                    }
+                }
+            });            
 
             AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.NameIdentifier;
         }

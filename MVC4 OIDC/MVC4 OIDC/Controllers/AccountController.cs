@@ -22,14 +22,12 @@ namespace MVC4_OIDC.Controllers
         public ActionResult Login(string returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
-
-            var provider = "Google";
-            
+           
+            var provider = "Norton";
             return new ChallengeResult(provider,
+                //Url.Action("SignInNorton", "Home",
                 Url.Action("ExternalLoginCallback", "Account",
                 new { ReturnUrl = returnUrl }));
-            
-            //return View();
         }        
 
         //
@@ -84,15 +82,7 @@ namespace MVC4_OIDC.Controllers
         {
             AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie, DefaultAuthenticationTypes.ExternalCookie);
             return RedirectToAction("Index", "Home");
-        }
-
-        //
-        // GET: /Account/ExternalLoginFailure
-        [AllowAnonymous]
-        public ActionResult ExternalLoginFailure()
-        {
-            return View();
-        }        
+        }   
 
         #region Helpers
         // Used for XSRF protection when adding external logins
